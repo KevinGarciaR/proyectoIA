@@ -3,15 +3,12 @@ from random import random,randint,shuffle
 from functools import reduce
 import openpyxl
 from openpyxl import Workbook
-import matplotlib.pyplot as plt
 global pos
 pos = 0
 global temp
 temp= []
-#Guardar Corrida en Excel
 nombreArchivo = "DatosGenerados.xlsx"
-wb = openpyxl.load_workbook(nombreArchivo)
-hoja = wb["AG"]
+
 
 def pairwise(iterable):
     "s -> (s0, s1), (s2, s3), (s4, s5), ..."
@@ -196,36 +193,21 @@ class AG:
             global pos
             pos += 1
             global temp
-            ag.guardaExcel(temp)
-            if i==iteraciones-1:
-             ag.hacerMerge()
             temp=[]
     def iteracion(self,poblacion):
         for operador in self.operadores:
             operador.operar(poblacion)
 
-    
-    def guardaExcel(self,lista):
-       hoja.append(lista)
-
-    def hacerMerge(self):
-     calcularmerge=hoja.max_row+1
-     mergeconcat1="A"+str(calcularmerge)
-     mergeconcat2="M"+str(calcularmerge)
-     mergefinal=mergeconcat1+":"+mergeconcat2
-     hoja.append(("Aqui termina la ejecución",""," "," "))
-     hoja.merge_cells(mergefinal)
-     wb.save(nombreArchivo)
-      
     @classmethod
     def imprimirResIteracion(self,poblacion,n):
         mejor = poblacion.mejorIndividuo()
         print("Iteracion "+str(n)+": "+str(mejor.bin)+", apt: "+str(poblacion.genotipo.aptitud(mejor)))
         global temp
         temp+=[mejor.bin,poblacion.genotipo.aptitud(mejor)]
-        
-
+        hoja.append(temp)
 ag = AG()
+wb= openpyxl.load_workbook(nombreArchivo)
+hoja= wb["AG"]
 ag.agregarOperadorGenetico(Torneo())
 ag.agregarOperadorGenetico(Cruza(0.8))
 ag.agregarOperadorGenetico(Mutacion(0.01,2))
@@ -240,9 +222,12 @@ genotipo.agregarGene(4,lambda x: ganancias[3][x])
 
 poblacion = Poblacion(50,genotipo)
 ag.ejecutar(poblacion,20)
-plt.plot([1,100,50,38])
-plt.xlabel('Generacion')
-plt.ylabel('Aptitud del mejor individuo')
-plt.show()
+calcularmerge=hoja.max_row+1
+mergeconcat1="A"+str(calcularmerge)
+mergeconcat2="M"+str(calcularmerge)
+mergefinal=mergeconcat1+":"+mergeconcat2
+hoja.append(("Aqui termina la ejecución",""," "," "))
+hoja.merge_cells(mergefinal)
+wb.save(nombreArchivo)
 # Torneo().operar(poblacion)
 # print(generarInhoja.append(("","a","b","c"))dividuo().bin)
