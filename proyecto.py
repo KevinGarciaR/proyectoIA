@@ -15,6 +15,7 @@ millones de pesos de los que se dispone para que la ganancia total sea máxima?
 
 #
 from decimal import Decimal
+from random import randint
 
 def decimalabinario(num, precision) : 
   
@@ -181,3 +182,22 @@ output4 = round(tempBeneficioIII,2);
 output5 = round(tempBeneficioIV,2);
 print("El valor convertido de Binario a Decimal de la Posicion 7 es");
 print(output1,output2,output3,output4,output5);
+generarpoblacioninicial();
+
+
+
+def generarpoblacioninicial():
+ primer_random=randint(0, 10); # 6
+ if (primer_random == 10):
+  print(primer_random ,0,0,0)
+  primer_resta=10-primer_random; # 4
+  segundo_random=randint(0,primer_resta); #3
+ if ((primer_random+segundo_random) == 10):
+  print(primer_random, segundo_random,0,0);
+  segunda_resta=10-(primer_random+segundo_random)
+  tercer_random =randint(0, segunda_resta); #3
+ if ((primer_random+segundo_random+tercer_random) == 10):
+  print(primer_random, segundo_random,tercer_random,0)
+  tercer_resta= 10-(primer_random+segundo_random+tercer_random)
+  Cuarto_random=tercer_resta
+  print(primer_random, segundo_random,tercer_random,Cuarto_random)	
