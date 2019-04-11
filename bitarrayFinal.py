@@ -196,6 +196,7 @@ class AG:
             global pos
             pos += 1
             global temp
+            print
             ag.guardaExcel(temp)
             if i==iteraciones-1:
              ag.hacerMerge()
@@ -205,17 +206,17 @@ class AG:
             operador.operar(poblacion)
 
     
-    def guardaExcel(self,lista):
-       hoja.append(lista)
+def guardaExcel(self,lista):
+    hoja.append(lista)
 
-    def hacerMerge(self):
-     calcularmerge=hoja.max_row+1
-     mergeconcat1="A"+str(calcularmerge)
-     mergeconcat2="M"+str(calcularmerge)
-     mergefinal=mergeconcat1+":"+mergeconcat2
-     hoja.append(("Aqui termina la ejecución",""," "," "))
-     hoja.merge_cells(mergefinal)
-     wb.save(nombreArchivo)
+def hacerMerge():
+    calcularmerge=hoja.max_row+1
+    mergeconcat1="A"+str(calcularmerge)
+    mergeconcat2="M"+str(calcularmerge)
+    mergefinal=mergeconcat1+":"+mergeconcat2
+    hoja.append(("Aqui termina la ejecución",""," "," "))
+    hoja.merge_cells(mergefinal)
+    wb.save(nombreArchivo)
       
     @classmethod
     def imprimirResIteracion(self,poblacion,n):
