@@ -1,6 +1,10 @@
 from bitstring import BitArray
 from random import random,randint,shuffle
 from itertools import izip
+# import pandas
+
+# iteracion = [individo,aptitud,individuo,aptituo]
+
 
 def pairwise(iterable):
     "s -> (s0, s1), (s2, s3), (s4, s5), ..."
@@ -25,9 +29,6 @@ def generarIndividuo():
     for x in individuo:
         bitarrTemp = BitArray(4)
         bitarrTemp.uint = x
-        # print("bitarrTemp:")
-        # print(bin(x))
-        # print(bitarrTemp.bin)
         individuoBinario = individuoBinario + bitarrTemp
     return individuoBinario
 
@@ -76,30 +77,37 @@ class Poblacion:
         self.size = size
         self.individuos = [generarIndividuo() for i in range(0,size)]
         self.funcion = lambda poblacion:reduce(self.funcionComparativa,self.individuos,self.individuos[0])
+        self.aptitudes = {}
     def funcionComparativa(self,ind1,ind2):
         if (self.genotipo.aptitud(ind1)>self.genotipo.aptitud(ind2)):
             return ind1
         else:
             return ind2
+    def aptitud(self,ind):
+        if (bool(self.aptitudes.get(ind.int))):
+            return self.aptitudes[ind.int]
+        else:
+            aptitud = self.genotipo.aptitud(ind)
+            self.aptitudes[ind.int] = aptitud
+            return aptitud
+
     def mejorIndividuo(self):
         return self.funcion(self.individuos)
     @classmethod
     def generarIndividuoAleatorio(self,longitud):
         return BitArray([random()<.5 for x in range(0,longitud)])
 class Torneo:
+    def __init__(self):
+        self.nombre = 'torneo'
     def operar(self,poblacion):
-        mejor = poblacion.mejorIndividuo()
-        print("Mejor individuo antes de torneo:"+str(mejor.bin)+", apt: "+str(poblacion.genotipo.aptitud(mejor)))
         ganadores1 = self.competencia(poblacion)
         poblacion.individuos = ganadores1 + self.competencia(poblacion)
-        mejor = poblacion.mejorIndividuo()
-        print("Mejor individuo despues de torneo:"+str(mejor.bin)+", apt: "+str(poblacion.genotipo.aptitud(mejor)))
     def competencia(self,poblacion):
         shuffle(poblacion.individuos)
         ganadores = []
         for ind1,ind2 in pairwise(poblacion.individuos):
             # print("peleando: "+str(ind1)+","+str(ind2))
-            if (poblacion.genotipo.aptitud(ind1)>poblacion.genotipo.aptitud(ind2)):
+            if (poblacion.aptitud(ind1)>poblacion.aptitud(ind2)):
                 # print("gano:"+str(ind1))
                 ganadores.append(ind1)
             else:
@@ -111,16 +119,12 @@ class Mutacion:
     def __init__(self,porcentaje,noPuntos):
         self.porcentaje = porcentaje
         self.noPuntos = noPuntos
+        self.nombre = 'mutacion'
     def operar(self,poblacion):
-        mejor = poblacion.mejorIndividuo()
-        print("Mejor individuo antes de mutacion:"+str(mejor.bin)+", apt: "+str(poblacion.genotipo.aptitud(mejor)))
-
         for ind1 in poblacion.individuos:
             if (random()<=self.porcentaje):
                 puntos = self.puntos(poblacion.genotipo.longitud)
                 self.mutar(ind1,puntos)
-        mejor = poblacion.mejorIndividuo()
-        print("Mejor individuo despues de mutacion:"+str(mejor.bin)+", apt: "+str(poblacion.genotipo.aptitud(mejor)))
     def mutar(self,original,puntos):
         for i in puntos:
             original[i] = not original[i]
@@ -133,9 +137,8 @@ class Mutacion:
 class Cruza:
     def __init__(self,porcentaje):
         self.porcentaje = porcentaje
+        self.nombre = 'cruza'
     def operar(self,poblacion):
-        mejor = poblacion.mejorIndividuo()
-        print("Mejor individuo antes de cruza:"+str(mejor.bin)+", apt: "+str(poblacion.genotipo.aptitud(mejor)))
         hijos = []
         for ind1,ind2 in pairwise(poblacion.individuos):
             if (random()<=self.porcentaje):
@@ -146,12 +149,8 @@ class Cruza:
                 hijos.append(ind1)
                 hijos.append(ind2)
         poblacion.individuos = hijos
-        mejor = poblacion.mejorIndividuo()
-        print("Mejor individuo despues de cruza:"+str(mejor.bin)+", apt: "+str(poblacion.genotipo.aptitud(mejor)))
     def cruzar(self,padre1,padre2,puntos):
-        # print("padre1: "+str(padre1)+", padre2: "+str(padre2))
         hijo = padre1[:puntos[0]]+padre2[puntos[0]:puntos[1]]+padre1[puntos[1]:]
-        # print("hijo: "+str(hijo))
         return hijo
     def puntos(self,longitudGenotipo):
         # longitud de genotipo debe ser mayor o igual a 3
@@ -166,23 +165,45 @@ class AG:
     def agregarOperadorGenetico(self,operador):
         self.operadores.append(operador)
     def ejecutar(self,poblacion,iteraciones):
+        resultado = []
         for i in range(0,iteraciones):
             mejor = poblacion.mejorIndividuo().copy()
-            self.iteracion(poblacion)
+            resultado = resultado + self.iteracion(poblacion)
             poblacion.individuos[0] = mejor
             self.imprimirResIteracion(poblacion,i)
+        return resultado
     def iteracion(self,poblacion):
+        mejores = []
         for operador in self.operadores:
+            nombre = operador.nombre
+            mejor = poblacion.mejorIndividuo()
+            mejores.append(mejor.bin)
+            mejores.append(poblacion.aptitud(mejor))
+            print("Mejor individuo antes de "+nombre+":"+str(mejores[0])+", apt: "+str(mejores[1]))
             operador.operar(poblacion)
+            mejor = poblacion.mejorIndividuo()
+            mejores.append(poblacion.mejorIndividuo().bin)
+            mejores.append(poblacion.aptitud(mejor))
+            print("Mejor individuo despues de "+nombre+":"+str(mejores[2])+", apt: "+str(mejores[3]))
+        return mejores
     @classmethod
     def imprimirResIteracion(self,poblacion,n):
         mejor = poblacion.mejorIndividuo()
-        print("Iteracion "+str(n)+": "+str(mejor.bin)+", apt: "+str(poblacion.genotipo.aptitud(mejor)))
+        print("Iteracion "+str(n)+": "+str(mejor.bin)+", apt: "+str(poblacion.aptitud(mejor)))
+
+def obtenerAptitudes(res):
+    aptitudes = []
+    i = 1;
+    for ind,apt in pairwise(res):
+        if (i%6==0):
+            aptitudes.append(apt)
+        i+=1
+    return aptitudes
 
 ag = AG()
 ag.agregarOperadorGenetico(Torneo())
-ag.agregarOperadorGenetico(Cruza(0.8))
-ag.agregarOperadorGenetico(Mutacion(0.5,2))
+ag.agregarOperadorGenetico(Cruza(.8))
+ag.agregarOperadorGenetico(Mutacion(0.01,2))
 
 genotipo = Genotipo(TipoDato.entero)
 genotipo.agregarGene(4,lambda x: ganancias[0][x])
@@ -190,10 +211,5 @@ genotipo.agregarGene(4,lambda x: ganancias[1][x])
 genotipo.agregarGene(4,lambda x: ganancias[2][x])
 genotipo.agregarGene(4,lambda x: ganancias[3][x])
 
-# print(genotipo.aptitud(BitArray('0b1000001000000000')))
-
 poblacion = Poblacion(50,genotipo)
-ag.ejecutar(poblacion,20)
-
-# Torneo().operar(poblacion)
-# print(generarIndividuo().bin)
+mejores = ag.ejecutar(poblacion,10)
