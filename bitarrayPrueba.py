@@ -8,8 +8,10 @@ import matplotlib.pyplot as plt
 nombreArchivo = "DatosGenerados.xlsx"
 wb = openpyxl.load_workbook(nombreArchivo)
 hoja = wb["AG"]
-
-
+global iteracionesglobal
+iteracionesglobal = 0
+global listamejor
+listamejor=[]
 def pairwise(iterable):
     "s -> (s0, s1), (s2, s3), (s4, s5), ..."
     a = iter(iterable)
@@ -175,6 +177,8 @@ class AG:
             resultado = resultado + self.iteracion(poblacion)
             poblacion.individuos[0] = mejor
             self.imprimirResIteracion(poblacion,i)
+            global iteracionesglobal
+            iteracionesglobal=iteraciones
         return resultado
     def iteracion(self,poblacion):
         mejores = []
@@ -188,13 +192,15 @@ class AG:
             mejor = poblacion.mejorIndividuo()
             mejores.append(poblacion.mejorIndividuo().bin)
             mejores.append(poblacion.aptitud(mejor))
+            listamejor.append(poblacion.mejorIndividuo().bin)
+            listamejor.append(poblacion.aptitud(mejor))
             print("Mejor individuo despues de "+nombre+":"+str(mejores[2])+", apt: "+str(mejores[3]))
         return mejores
     @classmethod
     def imprimirResIteracion(self,poblacion,n):
+        
         mejor = poblacion.mejorIndividuo()
         print("Iteracion "+str(n)+": "+str(mejor.bin)+", apt: "+str(poblacion.aptitud(mejor)))
-
 def obtenerAptitudes(res):
     aptitudes = []
     i = 0;
@@ -204,10 +210,25 @@ def obtenerAptitudes(res):
         i+=1
     return aptitudes
 
-def guardaExcel(self,lista):
-       hoja.append(lista)
+def obtenerDatosaGuardar(res):
+   chunks = [res[x:x+12] for x in range(0, len(res), 12)]
+   return chunks
+def obtenerMejorFinal(res):
+   mejorFinal = [res[x:x+2] for x in range(0, len(res), 2)]
+   return mejorFinal
 
-def hacerMerge(self):
+def guardaExcel(lista):
+
+       tamano=len(lista)
+       for i in range(0,tamano):
+        listatemp=[]
+        listatemp.append(str(i))
+        listatemp.extend(lista[i])
+        listatemp2=obtenerMejorFinal(listamejor)
+        listatemp.extend(listatemp2[i])
+        hoja.append(listatemp)
+
+def hacerMerge():
     calcularmerge=hoja.max_row+1
     mergeconcat1="A"+str(calcularmerge)
     mergeconcat2="M"+str(calcularmerge)
@@ -238,3 +259,5 @@ poblacion = Poblacion(50,genotipo)
 mejores = ag.ejecutar(poblacion,20)
 print(mejores)
 graficar(obtenerAptitudes(mejores))
+guardaExcel(obtenerDatosaGuardar(mejores))
+hacerMerge()
